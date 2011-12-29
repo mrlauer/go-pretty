@@ -70,7 +70,7 @@ func getInterfaceDammit(v reflect.Value) interface{} {
     return v.String()
 }
 
-func pretty(v reflect.Value, prefix, indent string) string {
+func pretty(v reflect.Value, indent string) string {
 
     var result string
 
@@ -88,19 +88,19 @@ func pretty(v reflect.Value, prefix, indent string) string {
         n := v.Len()
         result = fmt.Sprintf("[%d]%s[\n", n, v.Type().Elem())
         for i := 0; i<n; i++ {
-            f := pretty(v.Index(i), prefix, indent)
+            f := pretty(v.Index(i), indent)
             result += indent + addIndent(f, indent) + "\n"
         }
         result += "]"
         return result
     case reflect.Ptr:
-        return fmt.Sprintf("&%s", pretty(v.Elem(), prefix, indent))
+        return fmt.Sprintf("&%s", pretty(v.Elem(), indent))
     case reflect.Struct:
         n := v.NumField()
         result = fmt.Sprintf("%v{\n", v.Type())
         for i := 0; i<n; i++ {
             sf := v.Type().Field(i)
-            f := pretty(v.Field(i), prefix, indent)
+            f := pretty(v.Field(i), indent)
             result += fmt.Sprintf("%s%s: %s\n", indent, sf.Name, addIndent(f, indent))
         }
         result += "}"
@@ -109,8 +109,8 @@ func pretty(v reflect.Value, prefix, indent string) string {
         keys := v.MapKeys()
         for _, k := range keys {
             e := v.MapIndex(k)
-            keyStr := addIndent(pretty(k, prefix, indent), indent)
-            elemStr := addIndent(pretty(e, prefix, indent), indent)
+            keyStr := addIndent(pretty(k, indent), indent)
+            elemStr := addIndent(pretty(e, indent), indent)
             result += fmt.Sprintf("%s%s: %s\n", indent, keyStr, elemStr)
         }
         result += "]"
@@ -121,5 +121,5 @@ func pretty(v reflect.Value, prefix, indent string) string {
 }
 
 func Pretty(s interface{}, indent string) string {
-    return pretty(reflect.ValueOf(s), "", indent)
+    return pretty(reflect.ValueOf(s), indent)
 }
