@@ -14,6 +14,23 @@ func addIndent(s string, indent string) string {
     return strings.Replace(s, "\n", "\n" + indent, -1)
 }
 
+// Hack! Is there a real way?
+type hackStruct struct {
+    Field fmt.Stringer
+}
+
+func getStringerType() reflect.Type {
+    var s hackStruct
+    t, _ := reflect.TypeOf(s).FieldByName("Field")
+    return t.Type
+}
+
+func init() {
+    stringerType = getStringerType()
+}
+
+var stringerType reflect.Type
+
 func getInterfaceDammit(v reflect.Value) interface{} {
     if v.CanInterface() {
         return v.Interface()
@@ -49,19 +66,19 @@ func getInterfaceDammit(v reflect.Value) interface{} {
         return v.Complex()
     case reflect.Complex128:
         return v.Complex()
-    case reflect.String:
-        return v.String()
     }
-    return "?"
+    return v.String()
 }
 
-func pretty(s interface{}, prefix, indent string) string {
-    v := reflect.ValueOf(s)
+func pretty(v reflect.Value, prefix, indent string) string {
 
     var result string
 
-    if str, ok := s.(fmt.Stringer); ok {
-        return str.String()
+    // See if it is a stringer. If so, use that.
+    if(v.Type().Implements(stringerType)) {
+        method := v.MethodByName("String")
+        strVal := method.Call([]reflect.Value{})[0]
+        return strVal.String()
     }
 
     switch v.Kind() {
@@ -71,19 +88,19 @@ func pretty(s interface{}, prefix, indent string) string {
         n := v.Len()
         result = fmt.Sprintf("[%d]%s[\n", n, v.Type().Elem())
         for i := 0; i<n; i++ {
-            f := pretty(v.Index(i).Interface(), prefix, indent)
+            f := pretty(v.Index(i), prefix, indent)
             result += indent + addIndent(f, indent) + "\n"
         }
         result += "]"
         return result
     case reflect.Ptr:
-        return fmt.Sprintf("&%s", pretty(v.Elem().Interface(), prefix, indent))
+        return fmt.Sprintf("&%s", pretty(v.Elem(), prefix, indent))
     case reflect.Struct:
         n := v.NumField()
         result = fmt.Sprintf("%v{\n", v.Type())
         for i := 0; i<n; i++ {
             sf := v.Type().Field(i)
-            f := pretty(getInterfaceDammit(v.Field(i)), prefix, indent)
+            f := pretty(v.Field(i), prefix, indent)
             result += fmt.Sprintf("%s%s: %s\n", indent, sf.Name, addIndent(f, indent))
         }
         result += "}"
@@ -98,11 +115,11 @@ func pretty(s interface{}, prefix, indent string) string {
         }
         result += "]"
     default:
-        result = fmt.Sprintf("%v", s)
+        result = fmt.Sprintf("%v", getInterfaceDammit(v))
     }
     return result
 }
 
 func Pretty(s interface{}, indent string) string {
-    return pretty(s, "", indent)
+    return pretty(reflect.ValueOf(s), "", indent)
 }

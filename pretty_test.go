@@ -73,11 +73,12 @@ type TStruct struct {
     aPrivateField int
     NestedStr Nested
     NestedPtr *Nested
+    privateNested Nested
 }
 
 func TestStruct(t *testing.T) {
     n := Nested{4}
-    s := TStruct{42, 43, Nested{3}, &n }
+    s := TStruct{42, 43, Nested{3}, &n, Nested{5}}
     expected := `pretty.TStruct{
  AField: 42
  aPrivateField: 43
@@ -86,6 +87,9 @@ func TestStruct(t *testing.T) {
  }
  NestedPtr: &pretty.Nested{
   Something: 4
+ }
+ privateNested: pretty.Nested{
+  Something: 5
  }
 }`
 
