@@ -74,14 +74,19 @@ func pretty(v reflect.Value, indent string) string {
 
     var result string
 
-    // See if it is a stringer. If so, use that.
-    if(v.Type().Implements(stringerType)) {
+    // If it's a Stringer, and we can get to it, use that
+    if(v.CanInterface() && v.Type().Implements(stringerType)) {
         method := v.MethodByName("String")
         strVal := method.Call([]reflect.Value{})[0]
         return strVal.String()
     }
 
     switch v.Kind() {
+    case reflect.Interface:
+        if v.IsNil() {
+            return "nil"
+        }
+        return pretty(v.Elem(), indent)
     case reflect.Slice:
         fallthrough
     case reflect.Array:
@@ -94,6 +99,9 @@ func pretty(v reflect.Value, indent string) string {
         result += "]"
         return result
     case reflect.Ptr:
+        if v.IsNil() {
+            return "nil"
+        }
         return fmt.Sprintf("&%s", pretty(v.Elem(), indent))
     case reflect.Struct:
         n := v.NumField()

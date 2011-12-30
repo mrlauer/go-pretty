@@ -73,12 +73,13 @@ type TStruct struct {
     aPrivateField int
     NestedStr Nested
     NestedPtr *Nested
+    Intf    interface{}
     privateNested Nested
 }
 
 func TestStruct(t *testing.T) {
     n := Nested{4}
-    s := TStruct{42, 43, Nested{3}, &n, Nested{5}}
+    s := TStruct{42, 43, Nested{3}, &n, Nested{5}, Nested{6}}
     expected := `pretty.TStruct{
  AField: 42
  aPrivateField: 43
@@ -88,8 +89,11 @@ func TestStruct(t *testing.T) {
  NestedPtr: &pretty.Nested{
   Something: 4
  }
- privateNested: pretty.Nested{
+ Intf: pretty.Nested{
   Something: 5
+ }
+ privateNested: pretty.Nested{
+  Something: 6
  }
 }`
 
@@ -105,3 +109,43 @@ func TestMap(t *testing.T) {
 ]`
     testBody(m, expected, t)
 }
+
+type PStruct struct {
+    intField    int
+    int8Field   int8
+    uint8Field  uint8
+    complex128Field complex128
+    mapField    map[int]int
+    ssField     StringerStruct
+    stringerField   fmt.Stringer
+    intPtrField *int
+    arrayField  [3]int
+}
+
+func TestStructUnexp(t *testing.T) {
+    var ps PStruct
+    ps.stringerField = StringerStruct{3}
+    expected :=
+`pretty.PStruct{
+ intField: 0
+ int8Field: 0
+ uint8Field: 0
+ complex128Field: (0+0i)
+ mapField: map[int]int[
+ ]
+ ssField: pretty.StringerStruct{
+  AField: 0
+ }
+ stringerField: pretty.StringerStruct{
+  AField: 3
+ }
+ intPtrField: nil
+ arrayField: [3]int[
+  0
+  0
+  0
+ ]
+}`
+    testBody(ps, expected, t)
+}
+
