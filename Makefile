@@ -1,6 +1,6 @@
 include $(GOROOT)/src/Make.inc
 
-TARG=pretty
+TARG=mrl/pretty
 GOFILES=\
 	pretty.go\
 

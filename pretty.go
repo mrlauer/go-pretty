@@ -1,6 +1,7 @@
 /*
 Pretty-printer for go values.
-Defines one function, Pretty
+Defines one function, 
+    func Pretty(interface{}, indent) string
 */
 package pretty
 
@@ -128,6 +129,7 @@ func pretty(v reflect.Value, indent string) string {
     return result
 }
 
+// Pretty-print a value
 func Pretty(s interface{}, indent string) string {
     return pretty(reflect.ValueOf(s), indent)
 }
