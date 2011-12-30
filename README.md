@@ -12,10 +12,11 @@ pretty.Pretty([]int{3, 4, 5}, "    ")
 ```
 
 will produce
-```
+
+<pre>
 [3]int[
     3
     4
     5
 ]
-```
+</pre>
