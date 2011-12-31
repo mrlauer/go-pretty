@@ -15,23 +15,6 @@ func addIndent(s string, indent string) string {
     return strings.Replace(s, "\n", "\n" + indent, -1)
 }
 
-// Hack! Is there a real way?
-type hackStruct struct {
-    Field fmt.Stringer
-}
-
-func getStringerType() reflect.Type {
-    var s hackStruct
-    t, _ := reflect.TypeOf(s).FieldByName("Field")
-    return t.Type
-}
-
-func init() {
-    stringerType = getStringerType()
-}
-
-var stringerType reflect.Type
-
 func getInterfaceDammit(v reflect.Value) interface{} {
     if v.CanInterface() {
         return v.Interface()
@@ -76,10 +59,10 @@ func pretty(v reflect.Value, indent string) string {
     var result string
 
     // If it's a Stringer, and we can get to it, use that
-    if(v.CanInterface() && v.Type().Implements(stringerType)) {
-        method := v.MethodByName("String")
-        strVal := method.Call([]reflect.Value{})[0]
-        return strVal.String()
+    if(v.CanInterface()) {
+        if s, ok := v.Interface().(fmt.Stringer); ok {
+            return s.String()
+        }
     }
 
     switch v.Kind() {
